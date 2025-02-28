@@ -1,32 +1,36 @@
 #include "screen.h"
-
-float coffeeWeight = 10.0;
-int ratioCoffee = 1;
-int ratioWater = 16;
-float weightStep = 0.1;
+#include "encoder.h"
 
 Screen screen;
+const float coffeeWeight = 25.4;  // Example: 25.4g of coffee
 
 void setup() {
-    screen.begin();
+    setupEncoder();  // Initialize encoder
+    screen.begin();  // Initialize OLED display
+
+    screen.clearBuffer();
+    screen.displayCoffeeWeight(coffeeWeight);  
+    screen.displayWaterWeight(round(coffeeWeight * ratioWater));  // Round water weight
+    screen.displayLabels();
+    screen.displayRatio(1, ratioWater);
+    screen.sendBuffer();
 }
 
 void loop() {
-    screen.clearBuffer();
+    updateEncoder();  // Check encoder state in loop (no interrupts)
 
-    coffeeWeight += weightStep;
-    if (coffeeWeight > 20.0) {
-        coffeeWeight = 10.0;
+    static int lastRatio = 0;
+
+    if (ratioWater != lastRatio) {
+        screen.clearBuffer();
+        screen.displayCoffeeWeight(coffeeWeight);
+        screen.displayWaterWeight(round(coffeeWeight * ratioWater));  // Round water weight
+        screen.displayLabels();
+        screen.displayRatio(1, ratioWater);
+        screen.sendBuffer();
+
+        lastRatio = ratioWater;
     }
 
-    int waterWeight = coffeeWeight * ratioWater / ratioCoffee;
-
-    screen.displayCoffeeWeight(coffeeWeight);
-    screen.displayWaterWeight(waterWeight);
-    screen.displayLabels();
-    screen.displayRatio(ratioCoffee, ratioWater);
-
-    screen.sendBuffer();
-
-    delay(10);
+    delay(5);  // Small delay for stability
 }

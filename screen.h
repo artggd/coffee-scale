@@ -1,3 +1,6 @@
+#ifndef SCREEN_H
+#define SCREEN_H
+
 #include <Wire.h>
 #include <U8g2lib.h>
 
@@ -35,11 +38,13 @@ public:
     }
 
     void displayRatio(int coffee, int water) {
-        u8g2.drawRFrame(35, 40, 58, 24, 5);
+        int width = 65;
+        int height = 24;
+        u8g2.drawRFrame(35, 40, width, height, 5);
         u8g2.setFont(u8g2_font_10x20_te);
         String ratioString = String(coffee) + ":" + String(water);
-        int x = 35 + (58 - u8g2.getStrWidth(ratioString.c_str())) / 2;
-        int y = 40 + (24 - 20) / 2 + 20 - 4;
+        int x = 35 + (width - u8g2.getStrWidth(ratioString.c_str())) / 2;
+        int y = 40 + (height - 20) / 2 + 20 - 4;
         u8g2.setCursor(x, y);
         u8g2.print(ratioString);
     }
@@ -55,3 +60,5 @@ public:
 private:
     U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2;
 };
+
+#endif
