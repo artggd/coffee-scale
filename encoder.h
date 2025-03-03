@@ -3,39 +3,53 @@
 
 #include <Arduino.h>
 
-#define CLK 2  // Rotary encoder CLK (A)
-#define DT 3   // Rotary encoder DT (B)
-#define SW 4   // Rotary encoder Button
+class Encoder {
+public:
+  Encoder(int clkPin, int dtPin, int swPin)
+    : clkPin(clkPin), dtPin(dtPin), swPin(swPin), ratioWater(15), lastEncoderState(HIGH), lastDebounceTime(0) {}
 
-int ratioWater = 15;  // Default ratio (1:15)
-int lastEncoderState = HIGH;
-unsigned long lastDebounceTime = 0;
-const unsigned long debounceDelay = 3;  // 3ms debounce (tuned for smooth rotation)
+  void setup() {
+    pinMode(clkPin, INPUT);
+    pinMode(dtPin, INPUT);
+    pinMode(swPin, INPUT_PULLUP);  // Button input with pull-up
+  }
 
-void updateEncoder() {
-    int clkState = digitalRead(CLK);
+  void update() {
+    int clkState = digitalRead(clkPin);
 
     if (clkState != lastEncoderState && clkState == LOW) {  // Detect LOW → HIGH transition
-        if (digitalRead(DT) == LOW) {
-            ratioWater--;  // Counterclockwise
-        } else {
-            ratioWater++;  // Clockwise
-        }
+      if (digitalRead(dtPin) == LOW) {
+        ratioWater--;  // Counterclockwise
+      } else {
+        ratioWater++;  // Clockwise
+      }
 
-        // Limit range
-        if (ratioWater < 1) ratioWater = 1;
-        if (ratioWater > 30) ratioWater = 30;
+      // Limit range
+      if (ratioWater < 1) ratioWater = 1;
+      if (ratioWater > 30) ratioWater = 30;
 
-        lastDebounceTime = millis();
+      lastDebounceTime = millis();
     }
 
     lastEncoderState = clkState;
-}
+  }
 
-void setupEncoder() {
-    pinMode(CLK, INPUT);
-    pinMode(DT, INPUT);
-    pinMode(SW, INPUT_PULLUP);  // Button input with pull-up
-}
+  int getRatioWater() const {
+    return ratioWater;
+  }
+
+  bool isButtonPressed() const {
+    return digitalRead(swPin) == LOW;
+  }
+
+private:
+  int clkPin;
+  int dtPin;
+  int swPin;
+  int ratioWater;
+  int lastEncoderState;
+  unsigned long lastDebounceTime;
+  const unsigned long debounceDelay = 3;  // 3ms debounce (tuned for smooth rotation)
+};
 
 #endif
