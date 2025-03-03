@@ -2,6 +2,7 @@
 #define ENCODER_H
 
 #include <Arduino.h>
+#include <functional>
 
 class Encoder {
 public:
@@ -29,18 +30,58 @@ public:
       if (ratioWater > 30) ratioWater = 30;
 
       lastDebounceTime = millis();
+      if (onRatioChanged) {
+        onRatioChanged(ratioWater);
+      }
     }
 
     lastEncoderState = clkState;
+
+    if (digitalRead(swPin) == LOW && !buttonPressed) {
+      buttonPressed = true;
+      buttonPressTime = millis();
+    } else if (digitalRead(swPin) == HIGH && buttonPressed) {
+      buttonPressed = false;
+      if (millis() - buttonPressTime >= 1000) {
+        if (onButtonLongPress) {
+          onButtonLongPress();
+        }
+      }
+    }
+
+    if (digitalRead(swPin) == LOW && !buttonPressed) {
+      buttonPressed = true;
+      buttonPressTime = millis();
+    } else if (digitalRead(swPin) == HIGH && buttonPressed) {
+      buttonPressed = false;
+      if (millis() - buttonPressTime < 1000) {
+        if (onButtonShortPress) {
+          onButtonShortPress();
+        }
+      } else {
+        if (onButtonLongPress) {
+          onButtonLongPress();
+        }
+      }
+    }
   }
 
   int getRatioWater() const {
     return ratioWater;
   }
 
-  bool isButtonPressed() const {
-    return digitalRead(swPin) == LOW;
+  void setOnRatioChangedCallback(const std::function<void(int)>& callback) {
+    onRatioChanged = callback;
   }
+
+  void setOnButtonLongPressCallback(const std::function<void()>& callback) {
+    onButtonLongPress = callback;
+  }
+
+  void setOnButtonShortPressCallback(const std::function<void()>& callback) {
+    onButtonShortPress = callback;
+  }
+
 
 private:
   int clkPin;
@@ -49,7 +90,14 @@ private:
   int ratioWater;
   int lastEncoderState;
   unsigned long lastDebounceTime;
+  bool buttonPressed = false;
+  unsigned long buttonPressTime = 0;
   const unsigned long debounceDelay = 3;  // 3ms debounce (tuned for smooth rotation)
+
+  std::function<void(int)> onRatioChanged;
+  std::function<void()> onButtonLongPress;
+  std::function<void()> onButtonShortPress;
+
 };
 
 #endif

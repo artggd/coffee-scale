@@ -14,7 +14,7 @@ public:
     u8g2.enableUTF8Print();
   }
 
-  void displayWeightOnLeft(float weight, String label) {
+  void displayWeightOnLeft(float weight, const String& label) {
     u8g2.setFont(u8g2_font_logisoso24_tr);
     u8g2.setCursor(0, 25);
     u8g2.print(weight, 1);
@@ -24,7 +24,7 @@ public:
     u8g2.print(label);
   }
 
-  void displayWeightOnRight(int weight, String label) {
+  void displayWeightOnRight(int weight, const String& label) {
     u8g2.setFont(u8g2_font_logisoso24_tr);
     String weightString = String(weight);
     int x = 128 - u8g2.getStrWidth(weightString.c_str());
@@ -37,7 +37,7 @@ public:
     u8g2.print(label);
   }
 
-  void displayCenteredBoxText(String text) {
+  void displayCenteredBoxText(const String& text) {
     int width = 65;
     int height = 24;
     u8g2.drawRFrame(35, 40, width, height, 5);
@@ -49,13 +49,13 @@ public:
   }
 
   void displayRatio(int coffee, int water) {
-    this->displayCenteredBoxText(String(coffee) + ":" + String(water));
+    displayCenteredBoxText(String(coffee) + ":" + String(water));
   }
 
   void displayWaterWeighingMode(int currentWater, int targetWater, float coffeeWeight, int minutes, int seconds) {
     u8g2.clearBuffer();
 
-    this->displayWeightOnLeft(currentWater, "eau");
+    displayWeightOnLeft(currentWater, "eau");
 
     // Coffee Weight (Small, bottom-aligned with the ratio/timer box on the left)
     u8g2.setFont(u8g2_font_6x13_tf);
@@ -63,12 +63,12 @@ public:
     u8g2.setCursor(5, coffeeY);
     u8g2.print(coffeeWeight, 1);
 
-    this->displayWeightOnRight(targetWater, "cible");
+    displayWeightOnRight(targetWater, "cible");
 
     // Timer (Replaces Ratio)
     char timeString[6];
     sprintf(timeString, "%02d:%02d", minutes, seconds);
-    this->displayCenteredBoxText(timeString);
+    displayCenteredBoxText(timeString);
   }
 
   void clearBuffer() {
