@@ -71,6 +71,14 @@ public:
     displayCenteredBoxText(timeString);
   }
 
+  void displayCoffeeWeighingMode(float coffeeWeight, int targetWaterWeight, int ratio) {
+    u8g2.clearBuffer();
+    displayWeightOnLeft(coffeeWeight, "caf\u00E9");
+    displayWeightOnRight(targetWaterWeight, "eau");
+    displayRatio(1, ratio);
+    u8g2.sendBuffer();
+  }
+
   void clearBuffer() {
     u8g2.clearBuffer();
   }
