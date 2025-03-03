@@ -1,6 +1,7 @@
 #include "screen.h"
 #include "encoder.h"
 #include "coffee-scale.h"
+#include "timer.h"
 #include <HX711_ADC.h>
 
 // Define constants for pins
@@ -13,7 +14,8 @@ const int HX711_SCK_PIN = 5;
 Screen screen;
 Encoder encoder(CLK_PIN, DT_PIN, SW_PIN);
 HX711_ADC scale(HX711_DOUT_PIN, HX711_SCK_PIN);
-CoffeeScale coffeeScale(screen, encoder, scale);
+Timer timer;
+CoffeeScale coffeeScale(screen, encoder, scale, timer);
 
 void setup() {
   coffeeScale.begin();
@@ -21,5 +23,5 @@ void setup() {
 
 void loop() {
   coffeeScale.update();
-  delay(5);
+  delay(5); // Keeping a small delay to avoid flooding the main loop
 }
