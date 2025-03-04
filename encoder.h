@@ -7,7 +7,7 @@
 class Encoder {
 public:
   Encoder(int clkPin, int dtPin, int swPin)
-    : clkPin(clkPin), dtPin(dtPin), swPin(swPin), ratioWater(15), lastEncoderState(HIGH), lastDebounceTime(0) {}
+    : clkPin(clkPin), dtPin(dtPin), swPin(swPin), position(0), lastEncoderState(HIGH), lastDebounceTime(0) {}
 
   void setup() {
     pinMode(clkPin, INPUT);
@@ -18,43 +18,33 @@ public:
   void update() {
     int clkState = digitalRead(clkPin);
 
+    // Handle encoder rotation
     if (clkState != lastEncoderState && clkState == LOW) {  // Detect LOW → HIGH transition
       if (digitalRead(dtPin) == LOW) {
-        ratioWater--;  // Counterclockwise
+        position--;  // Counterclockwise
       } else {
-        ratioWater++;  // Clockwise
+        position++;  // Clockwise
       }
 
-      // Limit range
-      if (ratioWater < 1) ratioWater = 1;
-      if (ratioWater > 30) ratioWater = 30;
-
       lastDebounceTime = millis();
-      if (onRatioChanged) {
-        onRatioChanged(ratioWater);
+      if (onPositionChanged) {
+        onPositionChanged(position);
       }
     }
 
     lastEncoderState = clkState;
 
-    if (digitalRead(swPin) == LOW && !buttonPressed) {
-      buttonPressed = true;
-      buttonPressTime = millis();
-    } else if (digitalRead(swPin) == HIGH && buttonPressed) {
-      buttonPressed = false;
-      if (millis() - buttonPressTime >= 1000) {
-        if (onButtonLongPress) {
-          onButtonLongPress();
-        }
-      }
-    }
+    // Handle button press
+    bool currentButtonState = (digitalRead(swPin) == LOW);
 
-    if (digitalRead(swPin) == LOW && !buttonPressed) {
+    if (currentButtonState && !buttonPressed) {
       buttonPressed = true;
       buttonPressTime = millis();
-    } else if (digitalRead(swPin) == HIGH && buttonPressed) {
+    } else if (!currentButtonState && buttonPressed) {
       buttonPressed = false;
-      if (millis() - buttonPressTime < 1000) {
+      unsigned long pressDuration = millis() - buttonPressTime;
+
+      if (pressDuration < 1000) {
         if (onButtonShortPress) {
           onButtonShortPress();
         }
@@ -66,12 +56,12 @@ public:
     }
   }
 
-  int getRatioWater() const {
-    return ratioWater;
+  int getPosition() const {
+    return position;
   }
 
-  void setOnRatioChangedCallback(const std::function<void(int)>& callback) {
-    onRatioChanged = callback;
+  void setOnPositionChangedCallback(const std::function<void(int)>& callback) {
+    onPositionChanged = callback;
   }
 
   void setOnButtonLongPressCallback(const std::function<void()>& callback) {
@@ -82,22 +72,20 @@ public:
     onButtonShortPress = callback;
   }
 
-
 private:
   int clkPin;
   int dtPin;
   int swPin;
-  int ratioWater;
+  int position;
   int lastEncoderState;
   unsigned long lastDebounceTime;
   bool buttonPressed = false;
   unsigned long buttonPressTime = 0;
   const unsigned long debounceDelay = 3;  // 3ms debounce (tuned for smooth rotation)
 
-  std::function<void(int)> onRatioChanged;
+  std::function<void(int)> onPositionChanged;
   std::function<void()> onButtonLongPress;
   std::function<void()> onButtonShortPress;
-
 };
 
 #endif
