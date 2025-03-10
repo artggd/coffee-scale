@@ -7,7 +7,7 @@
 class Encoder {
 public:
   Encoder(int clkPin, int dtPin, int swPin)
-    : clkPin(clkPin), dtPin(dtPin), swPin(swPin), position(0), lastEncoderState(HIGH), lastDebounceTime(0) {}
+    : clkPin(clkPin), dtPin(dtPin), swPin(swPin), position(0), lastEncoderState(HIGH), lastDebounceTime(0), buttonPressed(false), buttonPressTime(0) {}
 
   void setup() {
     pinMode(clkPin, INPUT);
@@ -15,10 +15,7 @@ public:
     pinMode(swPin, INPUT_PULLUP);  // Button input with pull-up
   }
 
-  int getSwPin() const {
-    return swPin;
-  }
-void update() {
+  void update() {
     int clkState = digitalRead(clkPin);
 
     // Handle encoder rotation
@@ -43,40 +40,43 @@ void update() {
     if (currentButtonState && !buttonPressed) {
       buttonPressed = true;
       buttonPressTime = millis();
-      Serial.println("Button pressed");  // Debug message
-    } else if (!currentButtonState && buttonPressed) {
-      buttonPressed = false;
+    } else if (buttonPressed) {
       unsigned long pressDuration = millis() - buttonPressTime;
 
-      if (pressDuration < 1000) {
-        if (onButtonShortPress) {
-          onButtonShortPress();
-        }
-        Serial.println("Short press detected");  // Debug message
-      } else {
+      if (pressDuration >= 1000) {  // Long press threshold
         if (onButtonLongPress) {
           onButtonLongPress();
         }
         Serial.println("Long press detected");  // Debug message
+        buttonPressed = false;  // Reset button state to avoid multiple detections
+      }
+
+      if (!currentButtonState) {
+        buttonPressed = false;
+        if (pressDuration < 1000) {  // Short press threshold
+          if (onButtonShortPress) {
+            onButtonShortPress();
+          }
+          Serial.println("Short press detected");  // Debug message
+        }
       }
     }
-}
-
-
-  int getPosition() const {
-    return position;
   }
 
-  void setOnPositionChangedCallback(const std::function<void(int)>& callback) {
+  void setOnPositionChangedCallback(std::function<void(int)> callback) {
     onPositionChanged = callback;
   }
 
-  void setOnButtonLongPressCallback(const std::function<void()>& callback) {
+  void setOnButtonLongPressCallback(std::function<void()> callback) {
     onButtonLongPress = callback;
   }
 
-  void setOnButtonShortPressCallback(const std::function<void()>& callback) {
+  void setOnButtonShortPressCallback(std::function<void()> callback) {
     onButtonShortPress = callback;
+  }
+
+  int getSwPin() const {
+    return swPin;
   }
 
 private:
@@ -86,10 +86,8 @@ private:
   int position;
   int lastEncoderState;
   unsigned long lastDebounceTime;
-  bool buttonPressed = false;
-  unsigned long buttonPressTime = 0;
-  const unsigned long debounceDelay = 3;  // 3ms debounce (tuned for smooth rotation)
-
+  bool buttonPressed;
+  unsigned long buttonPressTime;
   std::function<void(int)> onPositionChanged;
   std::function<void()> onButtonLongPress;
   std::function<void()> onButtonShortPress;
