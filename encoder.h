@@ -15,7 +15,10 @@ public:
     pinMode(swPin, INPUT_PULLUP);  // Button input with pull-up
   }
 
-  void update() {
+  int getSwPin() const {
+    return swPin;
+  }
+void update() {
     int clkState = digitalRead(clkPin);
 
     // Handle encoder rotation
@@ -40,6 +43,7 @@ public:
     if (currentButtonState && !buttonPressed) {
       buttonPressed = true;
       buttonPressTime = millis();
+      Serial.println("Button pressed");  // Debug message
     } else if (!currentButtonState && buttonPressed) {
       buttonPressed = false;
       unsigned long pressDuration = millis() - buttonPressTime;
@@ -48,13 +52,16 @@ public:
         if (onButtonShortPress) {
           onButtonShortPress();
         }
+        Serial.println("Short press detected");  // Debug message
       } else {
         if (onButtonLongPress) {
           onButtonLongPress();
         }
+        Serial.println("Long press detected");  // Debug message
       }
     }
-  }
+}
+
 
   int getPosition() const {
     return position;
