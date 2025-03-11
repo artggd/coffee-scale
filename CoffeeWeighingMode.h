@@ -17,8 +17,11 @@ public:
     screen.displayCoffeeWeighingMode(scaleData.coffeeWeight, scaleData.targetWaterWeight, ratio);
   }
 
-  void onPositionChanged(int position) override {
-    ratio = position + INITIAL_RATIO;
+  void onIncrement(int increment) {
+    ratio += increment;
+    if (ratio < 1) {
+      ratio = 1;
+    }
   }
 
   void onButtonShortPress() override {

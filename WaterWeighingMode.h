@@ -32,8 +32,7 @@ public:
     tareDone = true;
   }
 
-  void onPositionChanged(int position) override {
-    // No action needed for position change in water weighing mode
+  void onIncrement(int increment) {
   }
 
 private:

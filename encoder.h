@@ -8,7 +8,7 @@
 class Encoder {
 public:
   Encoder(int clkPin, int dtPin, int swPin)
-    : clkPin(clkPin), dtPin(dtPin), swPin(swPin), position(0), button(BfButton::STANDALONE_DIGITAL, swPin, true, LOW), lastClkState(HIGH), lastDtState(HIGH), lastDebounceTime(0) {
+    : clkPin(clkPin), dtPin(dtPin), swPin(swPin), button(BfButton::STANDALONE_DIGITAL, swPin, true, LOW), lastClkState(HIGH), lastDtState(HIGH), lastDebounceTime(0) {
     instance = this;  // Set the static instance pointer
   }
 
@@ -33,8 +33,8 @@ public:
     button.read();  // Update the button state
   }
 
-  void setOnPositionChangedCallback(std::function<void(int)> callback) {
-    onPositionChanged = callback;
+  void setOnIncrementCallback(std::function<void(int)> callback) {
+    onIncrement = callback;
   }
 
   void setOnButtonLongPressCallback(std::function<void()> callback) {
@@ -53,13 +53,12 @@ private:
   int clkPin;
   int dtPin;
   int swPin;
-  volatile int position;
   int lastClkState;
   int lastDtState;
   unsigned long lastDebounceTime;
   BfButton button;
   static Encoder* instance;  // Static pointer to the instance
-  std::function<void(int)> onPositionChanged;
+  std::function<void(int)> onIncrement;
   std::function<void()> onButtonLongPress;
   std::function<void()> onButtonShortPress;
 
@@ -76,23 +75,19 @@ private:
 
     // Check for valid transitions to determine rotation direction
     if (clkState == HIGH && dtState == LOW && instance->lastClkState == LOW && instance->lastDtState == HIGH) {
-      instance->position++;
-      Serial.print(F("Direction = Clockwise | Position = "));
-      Serial.println(instance->position);
+      if (instance->onIncrement) {
+        instance->onIncrement(1);  // Increment
+      }
     } else if (clkState == HIGH && dtState == HIGH && instance->lastClkState == LOW && instance->lastDtState == LOW) {
-      instance->position--;
-      Serial.print(F("Direction = Counterclockwise | Position = "));
-      Serial.println(instance->position);
+      if (instance->onIncrement) {
+        instance->onIncrement(-1);  // Decrement
+      }
     }
 
     // Update previous states
     instance->lastClkState = clkState;
     instance->lastDtState = dtState;
     instance->lastDebounceTime = currentTime;
-
-    if (instance->onPositionChanged) {
-      instance->onPositionChanged(instance->position);
-    }
   }
 
   static void handleButtonPress(BfButton* btn, BfButton::press_pattern_t pattern) {

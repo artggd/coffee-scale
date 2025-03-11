@@ -28,9 +28,9 @@ public:
       waterWeighingMode(new WaterWeighingMode(screen, scale, timer, scaleData, WEIGHT_THRESHOLD)),
       currentMode(coffeeWeighingMode),
       lastActivityTime(millis()) {
-    encoder.setOnPositionChangedCallback([this](int position) {
+    encoder.setOnIncrementCallback([this](int increment) {
       onActivity();
-      currentMode->onPositionChanged(position);
+      currentMode->onIncrement(increment);
     });
     encoder.setOnButtonLongPressCallback([this]() {
       onActivity();
@@ -48,19 +48,12 @@ public:
   }
 
   void begin() {
-    Serial.begin(115200);  // Initialiser la communication série à 115200 bauds
-    while (!Serial) {
-      ;  // Attendre que le port série soit prêt
-    }
-    Serial.println("Serial communication initialized");  // Message de débogage
-
     screen.begin();
     encoder.setup();
     scale.begin();
     scale.start(2000, true);
     scale.setCalFactor(CALIBRATION_FACTOR);
   }
-
 
   void update() {
     encoder.update();

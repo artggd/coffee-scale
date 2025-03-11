@@ -6,7 +6,7 @@ public:
   virtual ~WeighingMode() = default;
   virtual void update() = 0;
   virtual void onButtonShortPress() = 0;
-  virtual void onPositionChanged(int position) = 0;
+  virtual void onIncrement(int increment) = 0;
 };
 
 #endif
