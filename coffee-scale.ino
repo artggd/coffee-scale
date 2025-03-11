@@ -23,5 +23,4 @@ void setup() {
 
 void loop() {
   coffeeScale.update();
-  delay(5);  // Keeping a small delay to avoid flooding the main loop
 }
